@@ -18,13 +18,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-      <div className="bg-gradient-to-b from-[#2e026d] to-[#15162c]">
-        <div className="flex max-w-6xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
-          <Navbar />
-          {children}
-          <Footer />
-        </div>
-      </div></body>
+      {children}
+      </body>
     </html>
   )
 }
