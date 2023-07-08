@@ -132,5 +132,5 @@ async function handler(
   return new NextResponse(finalCaption, { status: 200 })
 
 }
-export { handler as GET, handler as POST }
+export { handler as POST }
 
