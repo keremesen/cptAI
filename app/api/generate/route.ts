@@ -2,78 +2,44 @@ import redis from "@/utils/redis";
 import requestIp from "request-ip";
 
 import { Ratelimit } from "@upstash/ratelimit";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { NextResponse } from "next/server";
-
-async function readStream(stream: any) {
-  // Get a reader
-  const reader = stream.getReader();
-
-  // A variable to store the final result
-  let result = "";
-
-  // A TextDecoder instance
-  const decoder = new TextDecoder();
-
-  // A loop to read the data
-  while (true) {
-    // Read a chunk
-    const { value, done } = await reader.read();
-
-    // If there is no more data, break the loop
-    if (done) {
-      break;
-    }
-
-    // If there is data, decode it and append it to the result
-    result += decoder.decode(value);
-  }
-
-  // Return the result
-  return result;
-}
+import { NextRequest, NextResponse } from "next/server";
 
 type Data = string;
-interface ExtendedNextApiRequest extends NextApiRequest {
-  body: {
-    imageUrl: string;
-  };
-}
 
-// Create a new ratelimiter, that allows 3 requests every 15 minutes
-const ratelimit = redis
-  ? new Ratelimit({
-    redis: redis,
-    limiter: Ratelimit.fixedWindow(3, "1440 m"),
-    analytics: true,
-  })
-  : undefined;
+
+// Create a new ratelimiter, that allows 3 requests every 24h
+// const ratelimit = redis
+//   ? new Ratelimit({
+//     redis: redis,
+//     limiter: Ratelimit.fixedWindow(3, "1440 m"),
+//     analytics: true,
+//   })
+//   : undefined;
 
 async function handler(
-  req: ExtendedNextApiRequest,
-  res: NextApiResponse<Data>
+  req: NextRequest,
+  res: NextResponse<Data>
 ) {
   // Rate Limiter Code
   // if (ratelimit) {
-  //   const identifier = requestIp.getClientIp(req);
-  //   const result = await ratelimit.limit(identifier!);
-  //   res.setHeader("X-RateLimit-Limit", result.limit);
-  //   res.setHeader("X-RateLimit-Remaining", result.remaining);
+  // const identifier = requestIp.getClientIp(req);
+  // const identifier = req.ip;
+  // const result = await ratelimit.limit(identifier!);
+  // res.setHeader("X-RateLimit-Limit", result.limit);
+  // res.setHeader("X-RateLimit-Remaining", result.remaining);
+  // res.headers.set("X-RateLimit-Limit", result.limit.toString());
+  // res.headers.set("X-RateLimit-Remaining", result.remaining.toString());
 
 
   //   if (!result.success) {
-  //     res
-  //       .status(429)
-  //       .json(
-  //         "Too many uploads in 1 day. Please try again after 24 hours."
-  //       );
-  //     return;
+  //     return new NextResponse("Too many uploads in 1 day. Please try again after 24 hours.", { status: 429 })
   //   }
   // }
 
-  const data = await readStream(req.body);
-  // Parse the data into JSON
-  const imageUrl = JSON.parse(data).imageUrl;
+  // Parse the request body as JSON
+  const data = await req.json();
+  // Get the image URL from the data
+  const imageUrl = data.imageUrl;
 
 
   let startResponse = await fetch("https://api.replicate.com/v1/predictions", {
